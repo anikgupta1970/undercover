@@ -1,0 +1,440 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Undercover Game with Mr White</title>
+  <style>
+    :root {
+  --gradient-bg: linear-gradient(135deg, #6366f1 0%, #4f46e5 60%, #a78bfa 100%);
+  --primary: #6366f1;
+  --secondary: #a78bfa;
+  --accent: #38b6ff;
+  --danger: #ff6b6b;
+  --success: #34d399;
+  --mrwhite: #3f3f46;
+  --card-bg: rgba(255,255,255,0.85);
+  --input-bg: rgba(243,244,246,.7);
+  --shadow: 0 8px 32px 0 rgba(60,60,90,0.15);
+  --border-radius: 18px;
+  --transition: all 0.25s cubic-bezier(.77,0,.175,1);
+}
+
+body {
+  font-family: 'Inter', 'Segoe UI', Arial, sans-serif;
+  background: var(--gradient-bg);
+  min-height: 100vh;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: background 0.3s;
+}
+
+.game-container {
+  background: var(--card-bg);
+  border-radius: var(--border-radius);
+  padding: 36px 24px;
+  max-width: 450px;
+  width: 100%;
+  text-align: center;
+  box-shadow: var(--shadow);
+  backdrop-filter: blur(10px);
+  animation: fadeIn .8s;
+}
+
+h1, h2 {
+  margin-bottom: 18px;
+  letter-spacing: 1px;
+}
+
+h1 {
+  font-size: 2.5em;
+  font-weight: 800;
+  color: var(--primary);
+  background: linear-gradient(90deg,var(--primary),var(--secondary));
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+h2 {
+  font-size: 1.5em;
+  font-weight: 700;
+  color: var(--mrwhite);
+}
+
+.screen { display: none; }
+.active { display: block; }
+
+label {
+  display: block;
+  margin: 12px 0 6px 0;
+  font-weight: 500;
+  color: #475569;
+}
+
+input[type="number"], input[type="text"] {
+  background: var(--input-bg);
+  border: none;
+  border-radius: 10px;
+  padding: 9px 14px;
+  margin: 7px 0 0 0;
+  font-size: 1em;
+  width: 70%;
+  box-shadow: 0 2px 8px rgba(60,60,90,0.05);
+  transition: var(--transition);
+}
+
+input:focus {
+  outline: 2px solid var(--primary);
+  background: #fff;
+}
+
+.player-name-input { margin: 8px 0; }
+
+button {
+  padding: 11px 34px;
+  margin: 12px 6px;
+  border: none;
+  border-radius: 14px;
+  background: linear-gradient(90deg, var(--primary), var(--secondary));
+  color: white;
+  font-weight: 700;
+  font-size: 1.11em;
+  letter-spacing: .5px;
+  box-shadow: 0 2px 8px rgba(99,102,241,0.07);
+  cursor: pointer;
+  transition: var(--transition);
+}
+
+button:hover, button:focus {
+  background: linear-gradient(90deg,var(--accent),var(--primary));
+  transform: translateY(-2px) scale(1.03);
+  box-shadow: 0 4px 16px rgba(99,102,241,0.13);
+}
+
+.word-display {
+  font-size: 1.4em;
+  margin: 18px 0;
+  padding: 22px;
+  background: var(--danger);
+  color: white;
+  border-radius: 12px;
+  font-weight: 700;
+  box-shadow: 0 4px 14px rgba(255,107,107,0.11);
+  letter-spacing: 1.2px;
+  transition: var(--transition);
+}
+
+.reveal-item {
+  padding: 13px 20px;
+  margin: 7px auto;
+  max-width: 95%;
+  border-radius: 11px;
+  background: var(--input-bg);
+  display: flex;
+  justify-content: space-between;
+  font-weight: 600;
+  font-size: 1.09em;
+  box-shadow: 0 2px 6px rgba(160,174,192,0.11);
+  align-items: center;
+  transition: var(--transition);
+}
+.civilian {
+  border-left: 6px solid var(--success);
+}
+.undercover {
+  border-left: 6px solid var(--danger);
+}
+.mrwhite {
+  border-left: 6px solid var(--mrwhite);
+}
+
+#validationMessage {
+  color: var(--danger);
+  font-size: 1.08em;
+  font-weight: 700;
+  margin-top: 12px;
+  letter-spacing: .5px;
+  transition: var(--transition);
+}
+
+@media (max-width: 600px) {
+  .game-container {
+    padding: 15px 8px;
+    max-width: 100vw;
+    min-width: 0;
+  }
+  h1 { font-size: 1.3em;}
+  h2 { font-size: 1em;}
+  button { font-size: .95em; padding: 8px 15px;}
+  .reveal-item { padding: 10px 8px; font-size: .95em;}
+}
+
+@keyframes fadeIn {
+  0% { opacity: 0; transform: scale(.99) translateY(25px);}
+  100% { opacity: 1; transform: scale(1) translateY(0);}
+}
+  </style>
+</head>
+<body>
+  <div class="game-container">
+    <h1>🕵️ Undercover Game</h1>
+
+    <!-- Setup Screen -->
+    <div id="setupScreen" class="screen active">
+      <h2>Setup Game</h2>
+      <label>Number of Players (3-20):</label>
+      <input type="number" id="playerCount" min="3" max="20" value="6" onchange="updatePlayerNameInputs()"><br><br>
+
+      <label>Civilians:</label>
+      <input type="number" id="civilianCount" min="1" value="3"><br><br>
+
+      <label>Undercovers:</label>
+      <input type="number" id="undercoverCount" min="1" value="2"><br><br>
+
+      <label>Mr Whites:</label>
+      <input type="number" id="mrWhiteCount" min="1" value="1"><br><br>
+
+      <div id="playerNameInputs"></div>
+      <button onclick="startGame()">Start Game</button>
+      <div id="validationMessage" style="color:red; font-weight:bold; margin-top:10px;"></div>
+    </div>
+
+    <!-- Game Screen -->
+    <div id="gameScreen" class="screen">
+      <div id="currentPlayer"></div>
+      <button id="revealWord" onclick="revealWord()">Reveal My Word</button>
+      <div id="wordDisplay" class="word-display" style="display:none;"></div>
+      <button id="nextPlayer" onclick="nextPlayer()" style="display:none;">Next Player</button>
+      <button id="finishGame" onclick="finishGame()" style="display:none;">All Done</button>
+    </div>
+
+    <!-- Voting Screen -->
+    <div id="votingScreen" class="screen">
+      <h2>🗳 Vote to Eliminate</h2>
+      <div id="votingList"></div>
+    </div>
+
+    <!-- Reveal Screen -->
+    <div id="revealScreen" class="screen">
+      <h2>Game Over</h2>
+      <div id="revealList"></div>
+      <button onclick="newGame()">New Game</button>
+    </div>
+  </div>
+
+  <script>
+    let gameState = {
+      players: [],
+      roles: [], // parallel to players
+      currentPlayerIndex: 0,
+      wordPairs: [
+        ['Cat', 'Dog'],
+        ['Coffee', 'Tea'],
+        ['Beach', 'Mountain'],
+        ['Summer', 'Winter'],
+        ['Book', 'Movie'],
+        ['Pizza', 'Burger'],
+        ['Car', 'Bicycle'],
+        ['Apple', 'Orange']
+      ],
+      currentGameWords: {},
+      alive: []
+    };
+
+    function updatePlayerNameInputs() {
+      const count = parseInt(document.getElementById('playerCount').value);
+      const container = document.getElementById('playerNameInputs');
+      container.innerHTML = '';
+      for (let i = 1; i <= count; i++) {
+        const div = document.createElement('div');
+        div.className = 'player-name-input';
+        div.innerHTML = `<label>Player ${i}: </label><input type="text" id="playerName${i}" placeholder="Player ${i}">`;
+        container.appendChild(div);
+      }
+    }
+    updatePlayerNameInputs();
+
+    function getPlayerNames() {
+      const count = parseInt(document.getElementById('playerCount').value);
+      let names = [];
+      for (let i = 1; i <= count; i++) {
+        let val = document.getElementById('playerName' + i).value.trim();
+        names.push(val || `Player ${i}`);
+      }
+      return names;
+    }
+
+    function startGame() {
+      const total = parseInt(document.getElementById('playerCount').value);
+      const civilians = parseInt(document.getElementById('civilianCount').value);
+      const undercovers = parseInt(document.getElementById('undercoverCount').value);
+      const mrWhites = parseInt(document.getElementById('mrWhiteCount').value);
+
+      // ✅ Validation
+      if (civilians < 1 || undercovers < 1 || mrWhites < 1) {
+        document.getElementById('validationMessage').innerText = "At least 1 Civilian, 1 Undercover, and 1 Mr White required.";
+        return;
+      }
+      if (civilians + undercovers + mrWhites !== total) {
+        document.getElementById('validationMessage').innerText = "Counts must equal total players.";
+        return;
+      }
+      document.getElementById('validationMessage').innerText = "";
+
+      gameState.players = getPlayerNames();
+
+      // pick words
+      const pair = gameState.wordPairs[Math.floor(Math.random() * gameState.wordPairs.length)];
+      if (Math.random() < 0.5) {
+        gameState.currentGameWords.civilian = pair[0];
+        gameState.currentGameWords.undercover = pair[1];
+      } else {
+        gameState.currentGameWords.civilian = pair[1];
+        gameState.currentGameWords.undercover = pair[0];
+      }
+
+      // assign roles
+      let roles = [];
+      roles.push(...Array(civilians).fill("Civilian"));
+      roles.push(...Array(undercovers).fill("Undercover"));
+      roles.push(...Array(mrWhites).fill("Mr White"));
+
+      // shuffle roles
+      roles.sort(() => Math.random() - 0.5);
+      gameState.roles = roles;
+      gameState.alive = [...Array(total).keys()];
+      gameState.currentPlayerIndex = 0;
+
+      document.getElementById('setupScreen').classList.remove('active');
+      document.getElementById('gameScreen').classList.add('active');
+      updatePlayerDisplay();
+    }
+
+    function updatePlayerDisplay() {
+      document.getElementById('currentPlayer').textContent = `${gameState.players[gameState.currentPlayerIndex]}'s Turn`;
+      document.getElementById('revealWord').style.display = 'inline-block';
+      document.getElementById('wordDisplay').style.display = 'none';
+      document.getElementById('nextPlayer').style.display = 'none';
+      document.getElementById('finishGame').style.display = 'none';
+    }
+
+    function revealWord() {
+      const idx = gameState.currentPlayerIndex;
+      let role = gameState.roles[idx];
+      let word;
+      if (role === "Mr White") word = "??? (Mr White)";
+      else if (role === "Undercover") word = gameState.currentGameWords.undercover;
+      else word = gameState.currentGameWords.civilian;
+
+      document.getElementById('wordDisplay').textContent = word;
+      document.getElementById('wordDisplay').style.display = 'block';
+      document.getElementById('revealWord').style.display = 'none';
+      if (idx === gameState.players.length - 1) {
+        document.getElementById('finishGame').style.display = 'inline-block';
+      } else {
+        document.getElementById('nextPlayer').style.display = 'inline-block';
+      }
+    }
+
+    function nextPlayer() {
+      gameState.currentPlayerIndex++;
+      updatePlayerDisplay();
+    }
+
+    function finishGame() {
+      document.getElementById('gameScreen').classList.remove('active');
+      startVoting();
+    }
+
+    function startVoting() {
+      document.getElementById('votingScreen').classList.add('active');
+      const votingList = document.getElementById('votingList');
+      votingList.innerHTML = '';
+      gameState.alive.forEach(idx => {
+        const btn = document.createElement('button');
+        btn.textContent = gameState.players[idx];
+        btn.onclick = () => eliminatePlayer(idx);
+        votingList.appendChild(btn);
+      });
+    }
+
+    function eliminatePlayer(idx) {
+      gameState.alive = gameState.alive.filter(i => i !== idx);
+      revealEliminated(idx);
+    }
+
+    function revealEliminated(idx) {
+      let role = gameState.roles[idx];
+      const votingList = document.getElementById('votingList');
+      votingList.innerHTML = `<h3>❌ ${gameState.players[idx]} was eliminated! (${role})</h3>`;
+
+      if (role === "Mr White") {
+        setTimeout(() => handleMrWhiteGuess(), 2000);
+      } else {
+        setTimeout(() => checkWinConditions(), 2000);
+      }
+    }
+
+    function handleMrWhiteGuess() {
+      const votingList = document.getElementById('votingList');
+      votingList.innerHTML = `
+        <h3>Mr White eliminated!</h3>
+        <p>He may guess the civilian word:</p>
+        <input type="text" id="mrWhiteGuessInput" placeholder="Guess word">
+        <button onclick="checkMrWhiteGuess()">Submit Guess</button>
+        <div id="mrWhiteResult"></div>`;
+    }
+
+    function checkMrWhiteGuess() {
+      const guess = document.getElementById('mrWhiteGuessInput').value.trim().toLowerCase();
+      const correct = gameState.currentGameWords.civilian.toLowerCase();
+      const result = document.getElementById('mrWhiteResult');
+      if (guess === correct) {
+        result.innerHTML = "<b>🎉 Mr White guessed correctly and wins!</b>";
+        endGame("Mr White Wins!");
+      } else {
+        result.innerHTML = "<b>❌ Wrong guess, Mr White is out.</b>";
+        checkWinConditions();
+      }
+    }
+
+ function checkWinConditions() {
+  const aliveRoles = gameState.alive.map(i => gameState.roles[i]);
+  const aliveUnder = aliveRoles.filter(r => r === "Undercover").length;
+  const aliveCiv = aliveRoles.filter(r => r === "Civilian").length;
+
+  if (aliveUnder === 0) {
+    endGame("👥 Civilians Win!");
+  } else if (aliveCiv === 0) {
+    endGame("🕵️ Undercovers Win!");
+  } else {
+    startVoting(); // continue the game
+  }
+}
+
+
+
+    function endGame(message) {
+      document.getElementById('votingScreen').classList.remove('active');
+      document.getElementById('revealScreen').classList.add('active');
+      document.getElementById('revealList').innerHTML = `<h2>${message}</h2>`;
+      gameState.players.forEach((p, idx) => {
+        let role = gameState.roles[idx];
+        const div = document.createElement('div');
+        div.className = 'reveal-item ' + (role === "Civilian" ? "civilian" : role === "Undercover" ? "undercover" : "mrwhite");
+        div.innerHTML = `<span><b>${p}</b></span><span>${role}</span>`;
+        document.getElementById('revealList').appendChild(div);
+      });
+    }
+
+    function newGame() {
+      gameState = { ...gameState, players: [], roles: [], alive: [] };
+      document.getElementById('revealScreen').classList.remove('active');
+      document.getElementById('setupScreen').classList.add('active');
+    }
+  </script>
+</body>
+</html>
