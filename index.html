@@ -2173,7 +2173,7 @@
             }
 
             function launchFirework(x, y, hue) {
-                const count = Math.floor(rand(40, 70)); // much more particles
+                const count = Math.floor(rand(20, 30)); // much more particles
                 for (let i = 0; i < count; i++) {
                     const speed = rand(3, 7); // faster spread
                     const angle = (Math.PI * 2) * (i / count) + rand(-0.05, 0.05);
@@ -2247,7 +2247,7 @@
             // Start a short fireworks show: multiple bursts across the screen.
             window.showFireworks = function({
                 duration = 8000,
-                bursts = 25
+                bursts = 5
             } = {}) {
                 if (raf) return; // already running
                 running = true;
